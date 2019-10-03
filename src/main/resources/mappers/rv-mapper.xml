@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mappers.rv-mapper">
+	<!--
+		RVNUM
+		RVID
+		RVNICKNAME
+		RVTITLE
+		RVCONTENT
+		RVPOP
+		RVGOOD
+		RVBAD
+		RVCDATE
+		RVUDATE
+		RVGROUP
+		RVSTEP
+		RVINDENT
+		RVMOVIECD
+	-->
+
+	<!-- 리뷰 작성 -->
+	<insert id="write" parameterType="com.popcornbox.myapp.rv.dto.RvDTO">
+		INSERT INTO Review(rvnum, rvid, rvnickname, rvtitle, rvcontent, rvgrade, rvpop, rvcdate, rvgroup, rvmoviecd, rvmovienm, rvmovieopendt, rvmoviegenre)
+			VALUES(review_seq.NEXTVAL, #{rvid}, #{rvnickname}, #{rvtitle}, #{rvcontent}, #{rvgrade}, #{rvpop}, SYSDATE, review_seq.CURRVAL, #{rvmoviecd}, #{rvmovienm}, #{rvmovieopendt}, #{rvmoviegenre})
+	</insert>
+	
+	<!-- 리뷰 수정 -->
+	<update id="modify" parameterType="com.popcornbox.myapp.rv.dto.RvDTO">
+		UPDATE Review
+			SET rvtitle=#{rvtitle}, rvcontent=#{rvcontent}, rvpop=#{rvpop}, rvudate=SYSDATE
+			WHERE rvnum=#{rvnum}
+	</update>
+	
+	<!-- 리뷰 삭제 -->
+	<delete id="delete" parameterType="String">
+		DELETE FROM Review
+			WHERE rvnum=#{rvnum}
+	</delete>
+	
+	<!-- 리뷰 좋아요 싫어요 삭제(Goodorbad 테이블) -->
+	<delete id="deleteGoodOrBad" parameterType="com.popcornbox.myapp.rv.dto.GobDTO">
+		DELETE FROM Goodorbad
+			WHERE gobidfrom=#{gobidfrom}
+				AND gobrvnum = #{gobrvnum}
+	</delete>
+	
+	<!-- 리뷰 좋아요 싫어요 삽입(Goodorbad 테이블) -->
+	<insert id="insertGoodOrBad" parameterType="com.popcornbox.myapp.rv.dto.GobDTO">
+		INSERT INTO Goodorbad(gobnum, gobidfrom, gobidto, gobrvnum, gobmoviecd, gobstatus)
+			VALUES(goodorbad_seq.NEXTVAL, #{gobidfrom}, #{gobidto}, #{gobrvnum}, #{gobmoviecd}, #{gobstatus})
+	</insert>
+	
+	<!-- 리뷰 좋아요 싫어요 업데이트(Review 테이블)-->
+	<update id="updateGoodOrBadOnReview" parameterType="com.popcornbox.myapp.rv.dto.GobDTO">
+		UPDATE review
+		    SET rvgood = (SELECT COUNT(gobnum)
+		                    FROM goodorbad
+		                    WHERE gobrvnum = #{gobrvnum}
+		                        AND gobstatus = 'good'),
+		    	rvbad = (SELECT COUNT(gobnum)
+		                	FROM goodorbad
+		                	WHERE gobrvnum = #{gobrvnum}
+		                    	AND gobstatus = 'bad')
+			WHERE rvnum = #{gobrvnum}
+	</update>
+	
+	<!-- 리뷰 좋아요 싫어요 업데이트(Member 테이블) -->
+	<update id="updateGoodOrBadOnMember" parameterType="com.popcornbox.myapp.rv.dto.GobDTO">
+		UPDATE Member
+		    SET good = (SELECT COUNT(gobnum)
+		                    FROM goodorbad
+		                    WHERE gobidto = #{gobidto}
+		                        AND gobstatus = 'good'),
+		    	bad = (SELECT COUNT(gobnum)
+		                	FROM goodorbad
+		                	WHERE gobidto = #{gobidto}
+		                    	AND gobstatus = 'bad')
+			WHERE id = #{gobidto}
+	</update>
+
+	<!-- 리뷰 목록 (전체 & 특정 영화) -->
+	<select id="listMoviecd" parameterType="java.util.Map" resultType="com.popcornbox.myapp.rv.dto.RvDTO">
+		SELECT t2.*
+			FROM (SELECT ROW_NUMBER() OVER (ORDER BY rvcdate DESC, rvnum DESC) AS num, t1.*
+						FROM Review t1
+						WHERE rvmoviecd LIKE '%' || #{data} || '%') t2
+			WHERE t2.num BETWEEN #{startRec} AND #{endRec}
+	</select>
+	
+	<!-- 리뷰 목록 (일주일 내 최고 좋아요 댓글) -->
+	<select id="listBest" parameterType="java.util.Map" resultType="com.popcornbox.myapp.rv.dto.RvDTO">
+		SELECT *
+			FROM (SELECT ROW_NUMBER() OVER (ORDER BY rvgood-rvbad DESC, rvcdate DESC, rvnum DESC) AS num, t1.*
+						FROM Review t1
+						WHERE rvgood > 0) t2
+				WHERE t2.num BETWEEN #{startRec} AND #{endRec}
+					AND rvcdate BETWEEN SYSDATE-7 AND SYSDATE
+	</select>
+	
+	<!-- 리뷰 목록 (특정 유저) -->
+	<select id="listUser" parameterType="java.util.Map" resultType="com.popcornbox.myapp.rv.dto.RvDTO">
+		SELECT t2.*
+			FROM (SELECT ROW_NUMBER() OVER (ORDER BY rvcdate DESC, rvnum DESC) AS num, t1.*
+						FROM Review t1
+						WHERE rvid = #{data}) t2
+			WHERE t2.num BETWEEN #{startRec} AND #{endRec}
+	</select>
+	
+	<!-- 리뷰 총계 (전체 & 특정 영화) -->
+	<select id="rvTotalRecMoviecd" parameterType="String" resultType="Integer">
+		SELECT COUNT(rvnum)
+			FROM Review
+			WHERE rvmoviecd LIKE '%' || #{data} || '%'
+	</select>
+	
+	<!-- 리뷰 총계 (일주일 내 최고 좋아요 댓글) -->
+	<select id="rvTotalRecBest" parameterType="String" resultType="Integer">
+		SELECT COUNT(rvnum)
+			FROM Review
+			WHERE rvgood > 0
+				AND rvcdate BETWEEN SYSDATE-7 AND SYSDATE
+	</select>
+	
+	<!-- 리뷰 총계 (특정 유저) -->
+	<select id="rvTotalRecUser" parameterType="String" resultType="Integer">
+		SELECT COUNT(rvnum)
+			FROM Review
+			WHERE rvid = #{data}
+	</select>
+
+</mapper>

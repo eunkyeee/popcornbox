@@ -1,0 +1,73 @@
+/*!
+ * Start Bootstrap - Modern Business (https://startbootstrap.com/template-overviews/modern-business)
+ * Copyright 2013-2019 Start Bootstrap
+ * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap-logomodern-business-nav/blob/master/LICENSE)
+ */
+
+/*기본 컨텐츠 설정*/
+body {
+  padding-top: 56px;
+/*    background-color: lightslategray;  */
+  background-image: linear-gradient(to top, #2a5298 0%, #1e3c72 50%, #000 100%);
+  color: #9bb3c9;
+}
+.content_wrap{
+	padding: 100px 0;
+}
+.bg-black, .btn-black{
+	background-color: #000;
+}
+.bg-black:focus{
+	background-color: #000;
+}
+.btn-bl{
+	color: #fff;
+	background-color: #000;
+	border: 1px solid #9bb3c9;
+}
+.under_line{
+	border-color: #9bb3c9;
+}
+/*타이틀*/
+h1{
+	font-family: 'Black Han Sans', sans-serif;
+	font-size: 60px;
+}
+.gradient_text{
+ background-image: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
+ -webkit-background-clip: text;
+ -webkit-text-fill-color: transparent;
+}
+@media (max-width:320px) {
+	/*모바일S*/
+	h1{
+		font-size: 50px;
+	}
+}
+
+/*서브타이틀*/
+.label{
+	font-family: 'Black Han Sans', sans-serif;
+}
+.label_s{
+	font-family: 'Do Hyeon', sans-serif;
+}
+
+/*에러 메세지*/
+.errMsg{
+	color: red;
+}
+
+/*슬라이더*/
+.carousel-item {
+  height: 45vh;
+  min-height: 180px;
+  background: no-repeat center center scroll;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+.portfolio-item {
+  margin-bottom: 30px;
+}

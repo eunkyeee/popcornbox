@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mappers.member-mapper">
+
+<!-- 회원등록 -->
+<insert id="join" parameterType="com.popcornbox.myapp.member.dto.MemberDTO">
+	insert into member (id,pw,email,selectEmail,nickname,tel1,tel2,tel3,gender,cdate,grade,good,bad,review,status) 
+	values(#{id},#{pw},#{email},#{selectEmail},#{nickname},#{tel1},#{tel2},#{tel3},#{gender},sysdate,9,0,0,0,'활성화')
+</insert>
+
+<!-- 회원수정 -->
+<update id="modify" parameterType="com.popcornbox.myapp.member.dto.MemberDTO">
+	update member
+	set email=#{email}, selectEmail=#{selectEmail}, tel1=#{tel1}, tel2=#{tel2}, tel3=#{tel3}, 
+			nickname=#{nickname}, gender=#{gender}, udate=sysdate
+	where id=#{id} and pw=#{pw}
+</update>
+
+<!-- 회원 탈퇴(회원용) -->
+<delete id="delete" parameterType="Map">
+	delete from member where id=#{id} and pw=#{pw}
+</delete>
+
+<!-- 회원정보상세조회 -->
+<select id="getMember" parameterType="String" resultType="com.popcornbox.myapp.member.dto.MemberDTO">
+	select id,pw,nickname,email,selectEmail,tel1,tel2,tel3,gender,cdate,udate,grade,good,bad,review
+	from member
+	where id=#{id}
+</select>
+
+<!-- 회원 비밀번호 변경 -->
+<update id="changePw" parameterType="com.popcornbox.myapp.member.dto.MemberDTO">
+	update member
+    set pw=#{toPW}
+  where id=#{id}
+    and pw=#{fromPW}
+</update>
+
+<!-- 회원 호감,비호감 -->
+<update id="goodOrBad" parameterType="Map">
+<bind name="id" value="+id"/> <!-- '%' || ? || '%' ==> #{id} 대신 사용하게끔 바꿈-->
+	<choose>
+	<!-- 제목+내용 -->
+		<when test="goodOrBad=='good'.toString()">
+			update member set good = good+1 where id=#{id}
+		</when>
+		<!-- 제목 -->
+		<when test="goodOrBad=='bad'.toString()">
+			update member set bad = bad+1 where id=#{id}
+		</when>
+		<otherwise>
+			
+		</otherwise>
+	</choose>
+	
+</update>
+
+<!-- 회원 목록 조회(관리자용) -->
+<select id="getMemberList" resultType="com.popcornbox.myapp.member.dto.MemberDTO">
+	select id,pw,email,selectEmail,nickname,tel1,tel2,tel3,gender,cdate,udate from member
+</select>
+
+<!-- 회원 등급 -->
+<update id="grade" parameterType="com.popcornbox.myapp.member.dto.MemberDTO">
+	update member set grade=grade-1 where id=#{id} and good>100;
+</update>
+
+</mapper>
